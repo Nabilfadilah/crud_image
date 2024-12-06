@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Session;
 
 class UserController extends Controller
@@ -81,7 +82,9 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $title = "Update User";
+        $edit = User::findOrFail($id);
+        return view('admin.add_edit_user', compact('edit', 'title'));
     }
 
     /**
@@ -89,7 +92,38 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'photo' => 'mimes:png,jpeg,jpg|max:2048',
+        ]);
+
+        $update = User::findOrFail($id);
+        $update->name = $request->name;
+        $update->email = $request->email;
+
+        // Proses foto jika ada file baru yang diupload
+        if ($request->hasfile('photo')) {
+            $filePath = public_path('upload'); // Pastikan direktori benar
+            $file = $request->file('photo');
+            $file_name = time() . '_' . $file->getClientOriginalName();
+            $file->move($filePath, $file_name);
+
+            // Hapus foto lama jika ada
+            if (!is_null($update->photo)) {
+                $oldImage = public_path('upload/' . $update->photo);
+                if (File::exists($oldImage)) {
+                    unlink($oldImage);
+                }
+            }
+            $update->photo = $file_name; // Update nama file di database
+        }
+
+        // Simpan data ke database
+        $update->save();
+
+        // Redirect dengan flash message
+        return redirect()->route('user.index')->with('success', 'User updated successfully');
     }
 
     /**
