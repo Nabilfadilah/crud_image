@@ -4,26 +4,37 @@
         <div class="col-md-12">
             <div class="form-appl">
                 <h3>{{ $title }}</h3>
-                <form class="form1" method="post" action="{{ route('user.store') }}" enctype="multipart/form-data">
+                <form class="form1" method="post"
+                    action="@if (isset($edit->id)) {{ route('user.update', ['id' => $edit->id]) }}
+                    @else {{ route('user.store') }} @endif"
+                    enctype="multipart/form-data">
                     @csrf
+
+                    {{-- name --}}
                     <div class="form-group col-md-12 mb-3">
                         <label for="">Your Name</label>
                         <input class="form-control" type="text" name="name" placeholder="Enter Your Name"
-                            value="" />
+                            value="@if (isset($edit->id)) {{ $edit->name }}
+                            @else
+                                {{ old('name') }} @endif" />
                         @error('name')
                             <div class="text-danger">{{ $message }}</div>
                         @enderror
                     </div>
 
+                    {{-- email --}}
                     <div class="form-group col-md-12 mb-3">
                         <label for="">Your Email</label>
                         <input class="form-control" type="email" name="email" placeholder="Enter Your Email"
-                            value="" />
+                            value="@if (isset($edit->id)) {{ $edit->email }}
+                            @else
+                                {{ old('email') }} @endif" />
                         @error('email')
                             <div class="text-danger">{{ $message }}</div>
                         @enderror
                     </div>
 
+                    {{-- photo --}}
                     <div class="form-group col-md-12 mb-5">
                         <label for="">Photo</label>
                         <div class="avatar-upload">
@@ -33,7 +44,13 @@
                                 <label for="imageUpload"></label>
                             </div>
                             <div class="avatar-preview">
-                                <div id="imagePreview" style="background-image: url('{{ url('/img/avatar.png') }}')"></div>
+                                {{-- <div id="imagePreview" style="background-image: url('{{ url('/img/avatar.png') }}')"></div> --}}
+
+                                <div id="imagePreview"
+                                    style="@if (isset($edit->id) && $edit->photo != '') background-image: url('{{ url('/') }}/upload/{{ $edit->photo }}') 
+                                    @else background-image: url('{{ url('/img/avatar.png') }}') @endif">
+                                </div>
+
                             </div>
                         </div>
                         @error('photo')
@@ -41,6 +58,7 @@
                         @enderror
                     </div>
 
+                    {{-- button --}}
                     <input type="submit" class="btn btn-primary" value="Submit">
                     <a class="btn btn-danger" href="{{ route('user.index') }}">Cancel</a>
 
